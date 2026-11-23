@@ -1,0 +1,5 @@
+project-includes = ["app"]
+search-path = ["."]
+disable-search-path-heuristics = false
+python-interpreter-path = ".venv/Scripts/python.exe"
+site-packages-path = [".venv/Lib/site-packages"]

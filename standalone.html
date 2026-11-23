@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EcoRoute AI — Source-aware Destination Copilot (Standalone Demo)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              emerald: { 950:'#022c22',900:'#064e3b',800:'#065f46',700:'#047857',600:'#059669',500:'#10b981',400:'#34d399',300:'#6ee7b7' },
+              slate: { 950:'#020617',900:'#0f172a',800:'#1e293b',700:'#334155' },
+            },
+            boxShadow: { glass:'0 8px 32px 0 rgba(6,78,59,0.18)', glow:'0 0 24px 0 rgba(16,185,129,0.45)' },
+            keyframes: { pulseRing:{ '0%':{transform:'scale(0.9)',opacity:'.7'},'70%':{transform:'scale(1.3)',opacity:'0'},'100%':{transform:'scale(1.3)',opacity:'0'} }, ping:{'0%':{transform:'scale(1)',opacity:'1'},'75%,100%':{transform:'scale(2)',opacity:'0'} } },
+            animation: { pulseRing:'pulseRing 2s cubic-bezier(0.4,0,0.6,1) infinite', ping:'ping 1.4s cubic-bezier(0,0,0.2,1) infinite' },
+          },
+        },
+      };
+    </script>
+    <style>
+      body { margin:0; background: radial-gradient(1200px 600px at 10% -10%, rgba(16,185,129,0.12), transparent 60%), radial-gradient(1000px 500px at 100% 0%, rgba(6,78,59,0.25), transparent 55%), #020617; color:#e2e8f0; font-family:'Inter',system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
+      .glass { background:rgba(255,255,255,0.05); backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,0.1); border-radius:1rem; box-shadow:0 8px 32px 0 rgba(6,78,59,0.18); }
+      .glass-soft { background:rgba(255,255,255,0.03); backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,0.05); border-radius:1rem; }
+      .pill { display:inline-flex; align-items:center; gap:.375rem; border-radius:9999px; padding:.25rem .75rem; font-size:.75rem; font-weight:600; }
+      .btn-primary { position:relative; display:inline-flex; align-items:center; justify-content:center; gap:.5rem; border-radius:.75rem; background:#10b981; padding:.75rem 1.25rem; font-size:.875rem; font-weight:700; color:#064e3b; transition:all .2s; border:0; cursor:pointer; }
+      .btn-primary:hover { background:#34d399; box-shadow:0 0 24px 0 rgba(16,185,129,0.45); }
+      .btn-primary:active { transform:scale(.98); }
+      .btn-primary:disabled { opacity:.5; cursor:default; }
+      ::-webkit-scrollbar { width:10px; height:10px; }
+      ::-webkit-scrollbar-thumb { background:rgba(16,185,129,0.35); border-radius:999px; }
+      .fade-in { animation:fadeIn .4s ease both; }
+      @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+      #boot { position:fixed; inset:0; display:grid; place-items:center; color:#6ee7b7; font-family:system-ui; }
+    </style>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+    <script crossorigin src="https://unpkg.com/framer-motion@11.3.0/dist/framer-motion.js"></script>
+    <script crossorigin src="https://unpkg.com/lucide-react@0.408.0/dist/umd/lucide-react.js"></script>
+  </head>
+  <body>
+    <div id="boot">Loading EcoRoute AI…</div>
+    <div id="root"></div>
+
+    <script type="text/babel" data-presets="react">
+      const { useState, useEffect, useRef, createContext, useContext, useCallback } = React;
+      const FM = window.Motion || {};
+      const motion = FM.motion ? FM.motion : new Proxy({}, { get: (_, tag) => (props) => React.createElement(tag, props) });
+      const AnimatePresence = FM.AnimatePresence || (({ children }) => children);
+      const LU = window.lucide || window.lucideReact || {};
+      const mk = (n) => (props) => { const C = LU[n]; if (C) return React.createElement(C, props); return React.createElement('span', { ...props, style:{ ...(props.style||{}), display:'inline-flex', width:14, height:14 } }, '●'); };
+      const Leaf=mk('Leaf'),Globe=mk('Globe'),ChevronDown=mk('ChevronDown'),Wifi=mk('Wifi'),WifiOff=mk('WifiOff'),ShieldCheck=mk('ShieldCheck'),Sparkles=mk('Sparkles'),MapPin=mk('MapPin'),Plus=mk('Plus'),Minus=mk('Minus'),Wand2=mk('Wand2'),Loader2=mk('Loader2'),Accessibility=mk('Accessibility'),Landmark=mk('Landmark'),Mountain=mk('Mountain'),Trees=mk('Trees'),Utensils=mk('Utensils'),ShoppingBag=mk('ShoppingBag'),Temple=mk('Temple'),Waves=mk('Waves'),Bird=mk('Bird'),CloudSun=mk('CloudSun'),Users=mk('Users'),AlertTriangle=mk('AlertTriangle'),Navigation=mk('Navigation'),ArrowRight=mk('ArrowRight'),X=mk('X'),Flag=mk('Flag'),Send=mk('Send'),ExternalLink=mk('ExternalLink'),Clock=mk('Clock'),BarChart3=mk('BarChart3'),AlertCircle=mk('AlertCircle'),Gem=mk('Gem'),Route=mk('Route'),TriangleAlert=mk('TriangleAlert'),HandHeart=mk('HandHeart'),Store=mk('Store'),TrendingUp=mk('TrendingUp'),Coins=mk('Coins'),Building2=mk('Building2'),Radio=mk('Radio'),Wind=mk('Wind'),Droplets=mk('Droplets'),Phone=mk('Phone'),CheckSquare=mk('CheckSquare'),FileText=mk('FileText'),CalendarDays=mk('CalendarDays'),ShieldAlert=mk('ShieldAlert'),Shield=mk('Shield'),Sun=mk('Sun'),CheckCircle2=mk('CheckCircle2'),UserCheck=mk('UserCheck'),HelpCircle=mk('HelpCircle');
+      function Icon({ name, ...p }) { const C = LU[name] || mk('MapPin'); return React.createElement(C, p); }
+
+      const LANGS = [ {code:'en',label:'English',flag:'🇬🇧'},{code:'hi',label:'Hindi',flag:'🇮🇳'},{code:'ta',label:'Tamil',flag:'🇮🇳'},{code:'kn',label:'Kannada',flag:'🇮🇳'},{code:'bn',label:'Bengali',flag:'🇮🇳'} ];
+      const T = {
+        en:{brand:'EcoRoute AI',tagline:'Verified Destination Copilot',engineOnline:'AI Verification Engine: Online',accuracy:'99.4% Accuracy',offlineOn:'Offline Mode Active',offlineOff:'Live Mode',buildTitle:'Personalized Itinerary Builder',destination:'Destination',destinationPlaceholder:'e.g. Bhubaneswar, Odisha',dates:'Travel Dates',travelers:'Travelers',adults:'Adults',children:'Children',seniors:'Seniors',budget:'Budget',pacing:'Pacing',relaxed:'Relaxed',balanced:'Balanced',packed:'Packed',interests:'Interests',accessibility:'Accessibility Needs',specialRequests:'Special Requests',requestsPlaceholder:'Dietary needs, mobility notes…',generate:'Generate Verified Itinerary',generating:'Verifying Sources…',localOnly:'Local Only',verified:'Verified',userSubmitted:'User-Submitted',unverified:'Unverified',source:'Source',checked:'Checked',minsAgo:'mins ago',report:'Report Incorrect Info',fallback:'Information unavailable, please verify locally.',capacity:'Site Capacity',overcrowd:'Overcrowding Alert',atCapacity:'This site is at capacity.',nearbyAlt:'Nearby alternatives that match your preferences:',estTravel:'Est. travel',distance:'Distance',reroute:'Smart Reroute',cultural:'Cultural Heritage',tribal:'Tribal Reserve',fragile:'Fragile Ecosystem',liveConditions:'Live Conditions',weather:'Weather',transport:'Transport Status',predictive:'Predictive Crowd Trend',best:'Best time',supportLocal:'Support Local',localGem:'Local Gem',communityImpact:'Community Impact',localContribution:'Local Economic Contribution',carbon:'Carbon & Local Economy',footprint:'Carbon Footprint',toCommunity:'Injected into Local Community',toCorporate:'Leaked to Corporate Chains',map:'Route & Sensitive Zone Map',recommended:'Recommended Route',flagged:'Overcrowded / Flagged',itineraryTitle:'Your Verified Itinerary',day:'Day',reportTitle:'Report Incorrect Information',reportBody:'Help us keep travelers safe. Describe the issue.',submitReport:'Submit Report',cancel:'Cancel',emergency:'Emergency Contacts',offlineChecklist:'Offline Itinerary Checklist',essentials:'Essentials'},
+        hi:{brand:'इकोरूट AI',tagline:'सत्यापित गंतव्य सहायक',engineOnline:'AI सत्यापन इंजन: ऑनलाइन',accuracy:'99.4% शुद्धता',offlineOn:'ऑफलाइन मोड सक्रिय',offlineOff:'लाइव मोड',buildTitle:'व्यक्तिगत यात्रा योजना',destination:'गंतव्य',destinationPlaceholder:'जैसे भुवनेश्वर, ओडिशा',dates:'यात्रा तिथियाँ',travelers:'यात्री',adults:'वयस्क',children:'बच्चे',seniors:'वरिष्ठ',budget:'बजट',pacing:'गति',relaxed:'आरामदायक',balanced:'संतुलित',packed:'व्यस्त',interests:'रुचियाँ',accessibility:'सुलभता',specialRequests:'विशेष अनुरोध',requestsPlaceholder:'आहार/गतिशीलता नोट्स…',generate:'सत्यापित यात्रा बनाएँ',generating:'सत्यापन…',localOnly:'केवल स्थानीय',verified:'सत्यापित',userSubmitted:'उपयोगकर्ता-प्रस्तुत',unverified:'असत्यापित',source:'स्रोत',checked:'जाँचा',minsAgo:'मिनट पहले',report:'गलत जानकारी रिपोर्ट',fallback:'जानकारी उपलब्ध नहीं, स्थानीय रूप से सत्यापित करें।',capacity:'स्थल क्षमता',overcrowd:'भीड़भाड़ चेतावनी',atCapacity:'यह स्थल क्षमता पर है।',nearbyAlt:'नज़दीकी विकल्प:',estTravel:'अनुमानित यात्रा',distance:'दूरी',reroute:'स्मार्ट पुनर्मार्ग',cultural:'सांस्कृतिक विरासत',tribal:'आदिवासी आरक्षित',fragile:'नाज़ुक पारिस्थितिकी',liveConditions:'लाइव स्थितियाँ',weather:'मौसम',transport:'परिवहन',predictive:'भविष्यवाणी भीड़',best:'सर्वोत्तम समय',supportLocal:'स्थानीय समर्थन',localGem:'स्थानीय रत्न',communityImpact:'सामुदायिक प्रभाव',localContribution:'स्थानीय योगदान',carbon:'कार्बन और अर्थव्यवस्था',footprint:'कार्बन फुटप्रिंट',toCommunity:'स्थानीय समुदाय में',toCorporate:'कॉर्पोरेट को',map:'मानचित्र',recommended:'अनुशंसित मार्ग',flagged:'चिह्नित',itineraryTitle:'आपकी सत्यापित यात्रा',day:'दिन',reportTitle:'गलत जानकारी रिपोर्ट',reportBody:'यात्रियों को सुरक्षित रखें।',submitReport:'रिपोर्ट भेजें',cancel:'रद्द',emergency:'आपातकालीन संपर्क',offlineChecklist:'ऑफलाइन चेकलिस्ट',essentials:'आवश्यकताएँ'},
+        ta:{brand:'எகோரூட் AI',tagline:'சான்றளிக்கப்பட்ட உதவியாளர்',engineOnline:'AI இயந்திரம்: ஆன்லைன்',accuracy:'99.4% துல்லியம்',offlineOn:'ஆஃப்லைன் செயலில்',offlineOff:'நேரடி முறை',buildTitle:'பயணத் திட்டமிடல்',destination:'சேரும் இடம்',destinationPlaceholder:'எ.கா. புவனேஸ்வர்',dates:'தேதிகள்',travelers:'பயணிகள்',adults:'பெரியவர்கள்',children:'குழந்தைகள்',seniors:'மூத்தவர்கள்',budget:'பட்ஜெட்',pacing:'வேகம்',relaxed:'ஓய்வான',balanced:'சமநிலை',packed:'அடர்த்தியான',interests:'ஆர்வங்கள்',accessibility:'அணுகல்',specialRequests:'சிறப்பு கோரிக்கை',requestsPlaceholder:'உணவு/இயக்க நோட்டுகள்…',generate:'சான்றளிக்கப்பட்ட பயணத்தை உருவாக்கு',generating:'சரிபார்க்கிறது…',localOnly:'உள்ளூர் மட்டும்',verified:'சான்றளிக்கப்பட்டது',userSubmitted:'பயனர்-சமர்ப்பித்தது',unverified:'சரிபார்க்கப்படாதது',source:'மூலம்',checked:'சரிபார்க்கப்பட்டது',minsAgo:'நிமிடங்கள் முன்பு',report:'தவறான தகவலைப் புகாரளிக்க',fallback:'தகவல் கிடைக்கவில்லை, உள்ளூரில் சரிபார்க்கவும்.',capacity:'இடக் கொள்ளளவு',overcrowd:'நெரிசல் எச்சரிக்கை',atCapacity:'இந்த இடம் முழு கொள்ளளவில்.',nearbyAlt:'அருகிலுள்ள மாற்றுகள்:',estTravel:'மதிப்பிட்ட பயணம்',distance:'தூரம்',reroute:'ஸ்மார்ட் மாற்றுப் பாதை',cultural:'கலாச்சார பாரம்பரியம்',tribal:'பழங்குடி இடம்',fragile:'நொறுங்கும் சுற்றுச்சூழல்',liveConditions:'நேரடி நிலைமைகள்',weather:'வானிலை',transport:'போக்குவரத்து',predictive:'முன்கணிப்பு கூட்டம்',best:'சிறந்த நேரம்',supportLocal:'உள்ளூரை ஆதரிக்க',localGem:'உள்ளூர் ரத்தினம்',communityImpact:'சமூக தாக்கம்',localContribution:'உள்ளூர் பங்களிப்பு',carbon:'கார்பன் மற்றும் பொருளாதாரம்',footprint:'கார்பன் தடம்',toCommunity:'உள்ளூர் சமூகத்திற்கு',toCorporate:'கூட்டு நிறுவனங்களுக்கு',map:'வழி & மண்டல வரைபடம்',recommended:'பரிந்துரைக்கப்பட்ட வழி',flagged:'நெரிசல் / கொடிக்காட்டப்பட்டது',itineraryTitle:'உங்கள் சான்றளிக்கப்பட்ட பயணம்',day:'நாள்',reportTitle:'தவறான தகவலைப் புகாரளிக்க',reportBody:'பயணிகளைப் பாதுகாக்க உதவுங்கள்.',submitReport:'புகாரை அனுப்பு',cancel:'ரத்துசெய்',emergency:'அவசர தொடர்புகள்',offlineChecklist:'ஆஃப்லைன் சரிப்பட்டியல்',essentials:'அத்தியாவசியங்கள்'},
+        kn:{brand:'ಎಕೋರೂಟ್ AI',tagline:'ಪರಿಶೀಲಿತ ಸಹಾಯಕ',engineOnline:'AI ಎಂಜಿನ್: ಆನ್‌ಲೈನ್',accuracy:'99.4% ನಿಖರತೆ',offlineOn:'ಆಫ್‌ಲೈನ್ ಸಕ್ರಿಯ',offlineOff:'ಲೈವ್ ಮೋಡ್',buildTitle:'ವೈಯಕ್ತಿಕ ಪ್ರವಾಸ',destination:'ಗಮ್ಯಸ್ಥಾನ',destinationPlaceholder:'ಉದಾ. ಭುವನೇಶ್ವರ',dates:'ದಿನಾಂಕಗಳು',travelers:'ಪ್ರಯಾಣಿಕರು',adults:'ವಯಸ್ಕರು',children:'ಮಕ್ಕಳು',seniors:'ವೃದ್ಧರು',budget:'ಬಜೆಟ್',pacing:'ವೇಗ',relaxed:'ನಿಶ್ಚಿಂತ',balanced:'ಸಮತೋಲಿತ',packed:'ಜನಾಕೀರ್ಣ',interests:'ಆಸಕ್ತಿಗಳು',accessibility:'ಪ್ರವೇಶ',specialRequests:'ವಿಶೇಷ ವಿನಂತಿ',requestsPlaceholder:'ಆಹಾರ/ಚಲನಾ ಟಿಪ್ಪಣಿಗಳು…',generate:'ಪರಿಶೀಲಿತ ಪ್ರವಾಸ ರಚಿಸಿ',generating:'ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ…',localOnly:'ಸ್ಥಳೀಯ ಮಾತ್ರ',verified:'ಪರಿಶೀಲಿತ',userSubmitted:'ಬಳಕೆದಾರ-ಸಲ್ಲಿಸಿದ',unverified:'ಪರಿಶೀಲಿಸದ',source:'ಮೂಲ',checked:'ಪರಿಶೀಲಿಸಲಾಯಿತು',minsAgo:'ನಿಮಿಷಗಳ ಹಿಂದೆ',report:'ತಪ್ಪು ಮಾಹಿತಿ ವರದಿ',fallback:'ಮಾಹಿತಿ ಲಭ್ಯವಿಲ್ಲ, ಸ್ಥಳೀಯವಾಗಿ ಪರಿಶೀಲಿಸಿ.',capacity:'ತಾಣ ಸಾಮರ್ಥ್ಯ',overcrowd:'ಜನಾಕೀರ್ಣತೆ ಎಚ್ಚರಿಕೆ',atCapacity:'ಈ ತಾಣ ಸಾಮರ್ಥ್ಯದಲ್ಲಿದೆ.',nearbyAlt:'ಹತ್ತಿರದ ಪರ್ಯಾಯಗಳು:',estTravel:'ಅಂದಾಜು ಪ್ರಯಾಣ',distance:'ದೂರ',reroute:'ಸ್ಮಾರ್ಟ್ ಮರುಮಾರ್ಗ',cultural:'ಸಾಂಸ್ಕೃತಿಕ ಪರಂಪರೆ',tribal:'ಬುಡಕಟ್ಟು ಮೀಸಲು',fragile:'ಸೂಕ್ಷ್ಮ ಪರಿಸರ',liveConditions:'ಲೈವ್ ಪರಿಸ್ಥಿತಿಗಳು',weather:'ಹವಾಮಾನ',transport:'ಸಾರಿಗೆ',predictive:'ಭವಿಷ್ಯವಾಣಿ ಜನಸಂದಣಿ',best:'ಉತ್ತಮ ಸಮಯ',supportLocal:'ಸ್ಥಳೀಯ ಬೆಂಬಲ',localGem:'ಸ್ಥಳೀಯ ರತ್ನ',communityImpact:'ಸಮುದಾಯ ಪರಿಣಾಮ',localContribution:'ಸ್ಥಳೀಯ ಕೊಡುಗೆ',carbon:'ಕಾರ್ಬನ್ ಮತ್ತು ಅರ್ಥವ್ಯವस್ಥೆ',footprint:'ಕಾರ್ಬನ್ ಪಾದಮುದ್ರೆ',toCommunity:'ಸ್ಥಳೀಯ ಸಮುದಾಯಕ್ಕೆ',toCorporate:'ಕಾರ್ಪೊರೇಟ್‌ಗೆ',map:'ಮಾರ್ಗ & ವಲಯ ನಕಾಶೆ',recommended:'ಶಿಫಾರಸು ಮಾರ್ಗ',flagged:'ಜನಾಕೀರ್ಣ / ಫ್ಲ್ಯಾಗ್',itineraryTitle:'ನಿಮ್ಮ ಪರಿಶೀಲಿತ ಪ್ರವಾಸ',day:'ದಿನ',reportTitle:'ತಪ್ಪು ಮಾಹಿತಿ ವರದಿ',reportBody:'ಪ್ರಯಾಣಿಕರನ್ನು ಸುರಕ್ಷಿತರಾಗಿಡಿ.',submitReport:'ವರದಿ ಸಲ್ಲಿಸು',cancel:'ರದ್ದು',emergency:'ತುರ್ತು ಸಂಪರ್ಕಗಳು',offlineChecklist:'ಆಫ್‌ಲೈನ್ ಚೆಕ್‌ಲಿಸ್ಟ್',essentials:'ಅವಶ್ಯಕತೆಗಳು'},
+        bn:{brand:'ইকোরুট AI',tagline:'যাচাইকৃত সহকারী',engineOnline:'AI ইঞ্জিন: অনলাইন',accuracy:'99.4% নির্ভুলতা',offlineOn:'অফলাইন চালু',offlineOff:'লাইভ মোড',buildTitle:'ব্যক্তিগত ভ্রমণ',destination:'গন্তব্য',destinationPlaceholder:'যেমন ভুবনেশ্বর',dates:'তারিখ',travelers:'ভ্রমণকারী',adults:'প্রাপ্তবয়স্ক',children:'শিশু',seniors:'বয়স্ক',budget:'বাজেট',pacing:'গতি',relaxed:'আরামদায়ক',balanced:'সুষম',packed:'ব্যস্ত',interests:'আগ্রহ',accessibility:'অ্যাক্সেস',specialRequests:'বিশেষ অনুরোধ',requestsPlaceholder:'খাদ্য/চলাচল নোট…',generate:'যাচাইকৃত ভ্রমণ তৈরি করুন',generating:'যাচাই করা হচ্ছে…',localOnly:'স্থানীয় শুধু',verified:'যাচাইকৃত',userSubmitted:'ব্যবহারকারী-জমা',unverified:'অযাচাইকৃত',source:'উৎস',checked:'যাচাই করা',minsAgo:'মিনিট আগে',report:'ভুল তথ্য রিপোর্ট',fallback:'তথ্য অনুপলব্ধ, স্থানীয়ভাবে যাচাই করুন।',capacity:'ধারণক্ষমতা',overcrowd:'ভিড় সতর্কতা',atCapacity:'এই স্থানটি সীমায়।',nearbyAlt:'কাছের বিকল্প:',estTravel:'আনুমানিক ভ্রমণ',distance:'দূরত্ব',reroute:'স্মার্ট রি-রাউট',cultural:'সাংস্কৃতিক ঐতিহ্য',tribal:'উপজাতি সংরক্ষিত',fragile:'সংবেদনশীল বাস্তু',liveConditions:'লাইভ পরিস্থিতি',weather:'আবহাওয়া',transport:'পরিবহন',predictive:'ভবিষ্যদ্বাণী ভিড়',best:'সেরা সময়',supportLocal:'স্থানীয় সমর্থন',localGem:'স্থানীয় রত্ন',communityImpact:'সম্প্রদায় প্রভাব',localContribution:'স্থানীয় অবদান',carbon:'কার্বন ও অর্থনীতি',footprint:'কার্বন ফুটপ্রিন্ট',toCommunity:'স্থানীয় সম্প্রদায়ে',toCorporate:'কর্পোরেটে',map:'রুট ও জোন মানচিত্র',recommended:'প্রস্তাবিত রুট',flagged:'ভিড় / চিহ্নিত',itineraryTitle:'আপনার যাচাইকৃত ভ্রমণ',day:'দিন',reportTitle:'ভুল তথ্য রিপোর্ট',reportBody:'ভ্রমণকারীদের নিরাপদ রাখুন।',submitReport:'রিপোর্ট জমা',cancel:'বাতিল',emergency:'জরুরি যোগাযোগ',offlineChecklist:'অফলাইন চেকলিস্ট',essentials:'প্রয়োজনীয়'},
+      };
+      const PROVENANCE = {
+        tagline: 'Source-aware Destination Copilot (static demo)',
+        engineOnline: 'AI Engine: Demo',
+        accuracy: 'Confidence-scored',
+        generate: 'Generate Itinerary',
+        generating: 'Building itinerary…',
+        verified: 'Unverified',
+        itineraryTitle: 'Your Itinerary (demo)',
+      };
+      const LanguageContext = createContext(null);
+      function LanguageProvider({ children }) {
+        const [lang, setLang] = useState('en');
+        const t = useCallback((k) => PROVENANCE[k] || (T[lang] && T[lang][k]) || T.en[k] || k, [lang]);
+        return React.createElement(LanguageContext.Provider, { value:{ lang, setLang, t } }, children);
+      }
+      const useLang = () => useContext(LanguageContext);
+
+      const INTERESTS=[{id:'heritage',label:'Heritage',icon:'Landmark'},{id:'adventure',label:'Adventure',icon:'Mountain'},{id:'nature',label:'Nature',icon:'Trees'},{id:'food',label:'Food',icon:'Utensils'},{id:'shopping',label:'Shopping',icon:'ShoppingBag'},{id:'religious',label:'Religious',icon:'Temple'},{id:'beach',label:'Beach',icon:'Waves'},{id:'wildlife',label:'Wildlife',icon:'Bird'}];
+      const ACCESSIBILITY=[{id:'wheelchair',label:'Wheelchair'},{id:'stepfree',label:'Step-free'},{id:'audio',label:'Audio guides'},{id:'braille',label:'Braille'},{id:'sensory',label:'Sensory-friendly'}];
+      const BUDGETS=[{id:'low',label:'₹',hint:'Budget'},{id:'mid',label:'₹₹',hint:'Mid-range'},{id:'high',label:'₹₹₹',hint:'Premium'}];
+      const DEST_SUG=['Bhubaneswar, Odisha','Puri, Odisha','Konark, Odisha','Chilika Lake, Odisha','Jaipur, Rajasthan','Hampi, Karnataka','Kochi, Kerala','Madurai, Tamil Nadu'];
+      const WEATHER={temp:29,condition:'Partly cloudy',humidity:64,wind:11,icon:'CloudSun'};
+      const TICKER=[{id:1,severity:'ok',text:'Puri Express (12837) — On time, Bhubaneswar 14:20'},{id:2,severity:'warn',text:'NH-16 towards Konark — 25 min delay (roadworks)'},{id:3,severity:'ok',text:'City bus 305 — Frequency increased to 10 min'},{id:4,severity:'alert',text:'Konark ferry suspended — High winds on Chilika'}];
+      const CROWD=[{h:'6a',v:12},{h:'8a',v:28},{h:'10a',v:52},{h:'12p',v:71},{h:'2p',v:64},{h:'4p',v:92},{h:'6p',v:88},{h:'8p',v:47},{h:'10p',v:22}];
+      const ITINERARY={destination:'Bhubaneswar, Odisha',days:[
+        {day:1,title:'Heritage & Temples',theme:'heritage',activities:[
+          {id:'a1',name:'Lingaraj Temple',time:'08:00 – 10:00',interest:'religious',status:'unverified',source:'odishatourism.gov.in',sourceUrl:'https://odishatourism.gov.in',confidence:0,checkedMinsAgo:null,capacity:62,sensitive:['cultural'],description:'12th-century Shiva temple, 55m tall. Non-Hindus view from the nearby platform.',local:{gem:true,vendor:'Local priest guide — Raghunath',contribution:12},carbonKg:1.4,crowdPeak:'4:00 PM',crowdBest:'8:00 AM',alternatives:[]},
+          {id:'a2',name:'Rajarani Temple',time:'10:30 – 11:30',interest:'heritage',status:'unverified',source:'archaeologyodisha.nic.in',sourceUrl:'https://archaeologyodisha.nic.in',confidence:0,checkedMinsAgo:null,capacity:41,sensitive:['cultural'],description:'Known as the "Love Temple" for sculpted celestial couples.',local:{gem:true,vendor:'Artisan stall — Bibhuti Crafts',contribution:8},carbonKg:0.9,crowdPeak:'1:00 PM',crowdBest:'10:00 AM',alternatives:[]},
+          {id:'a3',name:'Dhauli Shanti Stupa',time:'15:00 – 16:30',interest:'heritage',status:'userSubmitted',source:'Community (#4821)',sourceUrl:null,confidence:73,checkedMinsAgo:140,capacity:88,sensitive:[],description:'Peace pagoda at the Kalinga war site. Sunset over Daya river.',local:{gem:false,vendor:null,contribution:0},carbonKg:1.1,crowdPeak:'5:00 PM',crowdBest:'3:00 PM',alternatives:[{name:'Khandagiri Caves',distance:'6 km',travel:'18 min'},{name:'Udayagiri Caves',distance:'6.5 km',travel:'20 min'},{name:'Pathani Samanta Planetarium',distance:'4 km',travel:'12 min'}]},
+        ]},
+        {day:2,title:'Nature & Wetlands',theme:'nature',activities:[
+          {id:'a4',name:'Chilika Lake Boat Safari',time:'07:00 – 12:00',interest:'wildlife',status:'unverified',source:'chilika.com',sourceUrl:'https://chilika.com',confidence:0,checkedMinsAgo:null,capacity:54,sensitive:['fragile'],description:"Asia's largest brackish lagoon. Irrawaddy dolphins near Satapada Nov–Feb.",local:{gem:true,vendor:'Boat co-op — Satapada',contribution:21},carbonKg:6.2,crowdPeak:'10:00 AM',crowdBest:'7:00 AM',alternatives:[]},
+          {id:'a5',name:'Nandankanan Zoological Park',time:'14:00 – 17:00',interest:'wildlife',status:'unverified',source:null,sourceUrl:null,confidence:0,checkedMinsAgo:null,capacity:84,sensitive:[],description:'White tiger center. (Opening hours could not be confirmed today.)',local:{gem:false,vendor:null,contribution:0},carbonKg:2.0,crowdPeak:'4:00 PM',crowdBest:'2:00 PM',fallback:true,alternatives:[{name:'Botanical Garden',distance:'3 km',travel:'10 min'},{name:'Ekamra Kanan',distance:'7 km',travel:'22 min'},{name:'Deras Dam',distance:'14 km',travel:'30 min'}]},
+        ]},
+        {day:3,title:'Tribal & Craft',theme:'food',activities:[
+          {id:'a6',name:'Tribal Museum & Craft Village',time:'10:00 – 13:00',interest:'heritage',status:'unverified',source:'scstrti.nic.in',sourceUrl:'https://scstrti.nic.in',confidence:0,checkedMinsAgo:null,capacity:22,sensitive:['tribal'],description:'Showcases Odisha’s 62 tribal communities. Photo restricted in sacred halls.',local:{gem:true,vendor:'Weaver co-op — Sambalpuri',contribution:17},carbonKg:0.8,crowdPeak:'12:00 PM',crowdBest:'10:00 AM',alternatives:[]},
+          {id:'a7',name:'Lunch — Dalma Restaurant',time:'13:30 – 14:30',interest:'food',status:'userSubmitted',source:'Community (#3920)',sourceUrl:null,confidence:81,checkedMinsAgo:95,capacity:47,sensitive:[],description:'Family-run Odia kitchen famous for Dalma & Chenna Poda.',local:{gem:true,vendor:'Dalma (since 1984)',contribution:14},carbonKg:0.6,crowdPeak:'1:30 PM',crowdBest:'1:00 PM',alternatives:[]},
+        ]},
+      ]};
+      const LOCAL_STATS={contribution:84,vendorsSupported:36,moneyToCommunity:4120,moneyToCorporate:980};
+      const CARBON={totalKg:13.8,breakdown:[{mode:'EV / Walk',kg:2.1,local:true},{mode:'Shared auto',kg:3.4,local:true},{mode:'Boat safari',kg:6.2,local:true},{mode:'Bus',kg:2.1,local:false}],localInjectedPct:84};
+      const EMERGENCY=[{name:'Tourist Helpline',number:'1363'},{name:'Police',number:'100'},{name:'Ambulance',number:'108'},{name:'Odisha Tourism',number:'0674-2325231'}];
+      const MAP_POINTS=[{id:'a1',label:'Lingaraj',x:30,y:40,kind:'recommended'},{id:'a2',label:'Rajarani',x:38,y:48,kind:'recommended'},{id:'a3',label:'Dhauli',x:55,y:70,kind:'flagged'},{id:'a5',label:'Nandankanan',x:70,y:25,kind:'flagged'},{id:'a4',label:'Chilika',x:18,y:82,kind:'recommended'},{id:'a6',label:'Tribal Museum',x:46,y:35,kind:'recommended'}];
+
+      function VerificationBadge({ status }) {
+        const { t } = useLang();
+        const C = ({verified:{icon:CheckCircle2,cls:'bg-emerald-500/15 text-emerald-300 border border-emerald-400/30',dot:'bg-emerald-400'},userSubmitted:{icon:UserCheck,cls:'bg-amber-500/15 text-amber-300 border border-amber-400/30',dot:'bg-amber-400'},unverified:{icon:HelpCircle,cls:'bg-rose-500/15 text-rose-300 border border-rose-400/30',dot:'bg-rose-400'}})[status] || {icon:HelpCircle,cls:'bg-rose-500/15 text-rose-300',dot:'bg-rose-400'};
+        const I = C.icon;
+        return React.createElement('span',{className:`pill ${C.cls}`},[
+          React.createElement('span',{key:'d',className:'relative flex h-2 w-2'},[React.createElement('span',{key:'p',className:`absolute inline-flex h-full w-full rounded-full ${C.dot} animate-pulseRing`}),React.createElement('span',{key:'q',className:`relative inline-flex h-2 w-2 rounded-full ${C.dot}`})]),
+          React.createElement(I,{key:'i',size:13}), t(status),
+        ]);
+      }
+      function SensitiveBadges({ tags }) {
+        const { t } = useLang();
+        const CFG = { cultural:{icon:Landmark,label:'cultural',cls:'bg-purple-500/15 text-purple-300 border-purple-400/30'}, tribal:{icon:Users,label:'tribal',cls:'bg-orange-500/15 text-orange-300 border-orange-400/30'}, fragile:{icon:Leaf,label:'fragile',cls:'bg-teal-500/15 text-teal-300 border-teal-400/30'} };
+        return React.createElement('div',{className:'flex flex-wrap gap-1.5'},(tags||[]).map((tag)=>{ const c=CFG[tag]||CFG.cultural; const Ico=c.icon; return React.createElement('span',{key:tag,className:`pill ${c.cls}`},[React.createElement(Ico,{key:'i',size:12}),t(c.label)]); }));
+      }
+      function PredictiveGraph({ peak }) {
+        const data=CROWD; const max=Math.max.apply(null,data.map(d=>d.v)); const peakP=data.reduce((a,b)=>b.v>a.v?b:a);
+        return React.createElement('div',{className:'rounded-xl border border-white/10 bg-white/[0.03] p-3'},[
+          React.createElement('div',{key:'t',className:'mb-2 flex items-center gap-1.5 text-xs font-semibold text-slate-300'},[React.createElement(TrendingUp,{key:'i',size:13,className:'text-emerald-400'}),'Predictive Crowd Trend']),
+          React.createElement('div',{key:'b',className:'flex h-16 items-end gap-1'},data.map((d)=>React.createElement('div',{key:d.h,className:'flex flex-1 flex-col items-center justify-end gap-1'},React.createElement('div',{style:{height:`${(d.v/max)*100}%`,transition:'height .6s'},className:`w-full rounded-t ${d.h===peakP.h?'bg-rose-400':'bg-emerald-500/70'}`})))),
+          React.createElement('div',{key:'l',className:'mt-1 flex justify-between text-[9px] text-slate-500'},data.map(d=>React.createElement('span',{key:d.h},d.h))),
+          React.createElement('div',{key:'f',className:'mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-300'},[
+            React.createElement('span',{key:'p',className:'flex items-center gap-1 text-rose-300'},[React.createElement(Clock,{key:'c',size:11}),'Peak: ',React.createElement('b',{key:'b'},peakP.h)]),
+            React.createElement('span',{key:'b',className:'flex items-center gap-1 text-emerald-300'},[React.createElement(Sun,{key:'s',size:11}),'Best: ',React.createElement('b',{key:'bv'},peak)]),
+          ]),
+        ]);
+      }
+      function OvercrowdingAlert({ activity }) {
+        const { t } = useLang();
+        if (activity.capacity < 80) return null;
+        return React.createElement('div',{className:'mt-3 overflow-hidden rounded-xl border border-rose-400/40 bg-rose-500/10'},[
+          React.createElement('div',{key:'h',className:'flex items-center gap-2 px-3 py-2'},[React.createElement(AlertTriangle,{key:'i',size:16,className:'animate-pulse text-rose-400'}),React.createElement('span',{key:'s',className:'text-sm font-bold text-rose-300'},t('overcrowd')),React.createElement('span',{key:'c',className:'ml-auto text-xs font-semibold text-rose-200/80'},activity.capacity+'% '+t('capacity'))]),
+          React.createElement('div',{key:'d',className:'px-3 pb-2 text-xs text-rose-200/90'},t('atCapacity')+' '+t('nearbyAlt')),
+          React.createElement('div',{key:'a',className:'grid gap-2 px-3 pb-3 sm:grid-cols-3'},(activity.alternatives||[]).map((alt)=>React.createElement('div',{key:alt.name,className:'rounded-lg border border-emerald-400/20 bg-emerald-500/5 p-2'},[
+            React.createElement('div',{key:'n',className:'flex items-center gap-1.5 text-sm font-semibold text-emerald-300'},[React.createElement(MapPin,{key:'m',size:12}),alt.name]),
+            React.createElement('div',{key:'m',className:'mt-1 flex items-center justify-between text-[11px] text-slate-300'},[React.createElement('span',{key:'t',className:'flex items-center gap-1'},[React.createElement(Navigation,{key:'n',size:10,className:'text-emerald-400'}),t('estTravel')+': '+alt.travel]),React.createElement('span',{key:'d'},alt.distance)]),
+          ]))),
+          React.createElement('div',{key:'f',className:'border-t border-rose-400/20 px-3 py-2'},React.createElement('span',{className:'inline-flex items-center gap-1 text-xs font-semibold text-emerald-300'},[React.createElement(ArrowRight,{size:12}),t('reroute')])),
+        ]);
+      }
+      function ReportModal({ open, onClose, activity }) {
+        const { t } = useLang();
+        if (!open) return null;
+        return React.createElement('div',{onClick:onClose,className:'fixed inset-0 z-50 grid place-items-center bg-black/60 p-4 backdrop-blur-sm'},
+          React.createElement('div',{onClick:(e)=>e.stopPropagation(),className:'glass w-full max-w-md p-5'},[
+            React.createElement('div',{key:'h',className:'mb-3 flex items-center justify-between'},[React.createElement('h3',{key:'t',className:'flex items-center gap-2 text-base font-bold text-white'},[React.createElement(Flag,{key:'f',size:16,className:'text-rose-400'}),t('reportTitle')]),React.createElement('button',{key:'x',onClick:onClose,className:'rounded-lg p-1 hover:bg-white/10'},[React.createElement(X,{size:18})])]),
+            React.createElement('p',{key:'b',className:'mb-3 text-sm text-slate-300'},t('reportBody')),
+            activity?React.createElement('div',{key:'a',className:'mb-3 rounded-lg bg-white/5 px-3 py-2 text-xs text-slate-300'},[React.createElement('b',{className:'text-white'},activity.name),' · ',React.createElement('span',{className:'text-emerald-300'},t(activity.status))]):null,
+            React.createElement('textarea',{key:'ta',rows:3,className:'mb-3 w-full resize-none rounded-xl bg-white/5 border border-white/10 px-3 py-2.5 text-sm text-white outline-none',placeholder:'…'}),
+            React.createElement('div',{key:'bt',className:'flex gap-2'},[
+              React.createElement('button',{key:'c',onClick:onClose,className:'flex-1 rounded-xl border border-white/10 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5'},t('cancel')),
+              React.createElement('button',{key:'s',onClick:onClose,className:'btn-primary flex-1'},[React.createElement(Send,{size:14}),t('submitReport')]),
+            ]),
+          ]));
+      }
+      function ItineraryCard({ activity, localOnly }) {
+        const { t } = useLang(); const [report,setReport]=useState(false);
+        if (localOnly && !activity.local.gem) return null;
+        const intIcon=({heritage:'Landmark',adventure:'Mountain',nature:'Trees',food:'Utensils',shopping:'ShoppingBag',religious:'Temple',beach:'Waves',wildlife:'Bird'})[activity.interest]||'MapPin';
+        const capColor=activity.capacity>=80?'bg-rose-400':activity.capacity>=60?'bg-amber-400':'bg-emerald-400';
+        const confColor=activity.confidence>=90?'bg-emerald-400':activity.confidence>=70?'bg-amber-400':'bg-rose-400';
+        return React.createElement('div',{className:'glass-soft relative p-4 fade-in'},[
+          activity.local.gem?React.createElement('div',{key:'g',className:'absolute -right-1 -top-2 rotate-3'},React.createElement('span',{className:'pill bg-emerald-500 text-emerald-950 shadow-glow'},[React.createElement(Gem,{size:12}),t('localGem')])):null,
+          React.createElement('div',{key:'h',className:'mb-2 flex flex-wrap items-center gap-2'},[
+            React.createElement('span',{key:'ic',className:'grid h-8 w-8 place-items-center rounded-lg bg-emerald-500/15 text-emerald-300'},[React.createElement(Icon,{key:'ii',name:intIcon,size:16})]),
+            React.createElement('div',{key:'t',className:'mr-auto'},[React.createElement('h4',{key:'n',className:'text-sm font-bold text-white'},activity.name),React.createElement('p',{key:'tm',className:'flex items-center gap-1 text-[11px] text-slate-400'},[React.createElement(Clock,{size:11}),activity.time])]),
+            React.createElement(VerificationBadge,{key:'v',status:activity.status}),
+          ]),
+          React.createElement('p',{key:'d',className:'mb-3 text-xs leading-relaxed text-slate-300'},activity.description),
+          activity.fallback?React.createElement('div',{key:'fb',className:'mb-3 flex items-start gap-2 rounded-lg border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-[11px] text-amber-200'},[React.createElement(AlertCircle,{size:14,className:'mt-0.5 shrink-0'}),t('fallback')]):null,
+          React.createElement('div',{key:'c',className:'mb-2 space-y-1.5'},[
+            React.createElement('div',{key:'cf',className:'flex items-center gap-2'},[React.createElement(BarChart3,{size:13,className:'text-slate-400'}),React.createElement('div',{className:'h-2 flex-1 overflow-hidden rounded-full bg-white/10'},React.createElement('div',{style:{width:activity.confidence+'%',transition:'width .8s'},className:'h-full rounded-full '+confColor})),React.createElement('span',{className:'w-9 text-right text-xs font-semibold text-slate-300'},activity.confidence+'%')]),
+            React.createElement('div',{key:'sr',className:'flex flex-wrap items-center justify-between gap-2 text-[11px]'},[
+              React.createElement('span',{key:'s',className:'flex items-center gap-1 text-slate-400'},[t('source')+': ', activity.sourceUrl?React.createElement('a',{key:'a',href:activity.sourceUrl,target:'_blank',rel:'noreferrer',className:'inline-flex items-center gap-1 font-semibold text-emerald-300 hover:underline'},[activity.source,React.createElement(ExternalLink,{size:11})]):React.createElement('span',{className:'font-medium text-slate-300'},activity.source||'—')]),
+              activity.checkedMinsAgo!=null?React.createElement('span',{key:'m',className:'text-slate-500'},t('checked')+' '+activity.checkedMinsAgo+' '+t('minsAgo')):null,
+            ]),
+          ]),
+          React.createElement('div',{key:'cap',className:'mb-2 flex items-center gap-2'},[React.createElement('span',{className:'text-[11px] font-semibold text-slate-400'},t('capacity')),React.createElement('div',{className:'h-2 flex-1 overflow-hidden rounded-full bg-white/10'},React.createElement('div',{style:{width:activity.capacity+'%'},className:'h-full rounded-full '+capColor})),React.createElement('span',{className:'w-9 text-right text-xs font-bold '+(activity.capacity>=80?'text-rose-300':'text-slate-300')},activity.capacity+'%')]),
+          (activity.sensitive&&activity.sensitive.length>0)?React.createElement(SensitiveBadges,{key:'sb',tags:activity.sensitive}):null,
+          React.createElement(OvercrowdingAlert,{key:'oc',activity}),
+          React.createElement('div',{key:'pg',className:'mt-3'},React.createElement(PredictiveGraph,{peak:activity.crowdPeak})),
+          React.createElement('div',{key:'ft',className:'mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-white/5 pt-3 text-[11px]'},[
+            React.createElement('span',{className:'flex items-center gap-1 text-emerald-300'},[React.createElement(Leaf,{size:12}),activity.carbonKg+' kg CO₂']),
+            activity.local.gem?React.createElement('span',{className:'text-slate-300'},'🤝 '+activity.local.vendor+' · +'+activity.local.contribution+'% '+t('localContribution')):null,
+          ].filter(Boolean).concat([React.createElement('button',{key:'r',onClick:()=>setReport(true),className:'ml-auto inline-flex items-center gap-1 text-slate-400 hover:text-rose-300'},[React.createElement(Flag,{size:12}),t('report')])])),
+          React.createElement(ReportModal,{key:'rm',open:report,onClose:()=>setReport(false),activity}),
+        ]);
+      }
+
+      function MapOverview() {
+        const { t } = useLang();
+        const rec = MAP_POINTS.filter(p=>p.kind==='recommended');
+        return React.createElement('div',{className:'glass p-5'},[
+          React.createElement('div',{key:'h',className:'mb-3 flex items-center justify-between'},[React.createElement('h3',{className:'flex items-center gap-2 text-base font-bold text-white'},[React.createElement(MapPin,{size:16,className:'text-emerald-400'}),t('map')]),React.createElement('div',{className:'flex gap-2 text-[11px]'},[React.createElement('span',{className:'pill bg-emerald-500/15 text-emerald-300'},t('recommended')),React.createElement('span',{className:'pill bg-rose-500/15 text-rose-300'},t('flagged'))])]),
+          React.createElement('div',{key:'m',className:'relative h-64 overflow-hidden rounded-xl border border-white/10',style:{background:'linear-gradient(135deg, rgba(6,78,59,.3), #0f172a 50%, rgba(225,29,72,.2))'}},[
+            React.createElement('div',{key:'g',className:'absolute inset-0',style:{opacity:.2,backgroundImage:'linear-gradient(#ffffff22 1px, transparent 1px), linear-gradient(90deg, #ffffff22 1px, transparent 1px)',backgroundSize:'24px 24px'}}),
+            React.createElement('svg',{key:'s',className:'absolute inset-0 h-full w-full',viewBox:'0 0 100 100',preserveAspectRatio:'none'},rec.slice(1).map((p,i)=>{ const a=rec[i]; return React.createElement('line',{key:p.id,x1:a.x,y1:a.y,x2:p.x,y2:p.y,stroke:'#10b981','stroke-width':'0.6','stroke-dasharray':'2 2'}); })),
+            MAP_POINTS.map((p)=>React.createElement('div',{key:p.id,className:'absolute -translate-x-1/2 -translate-y-1/2',style:{left:p.x+'%',top:p.y+'%'}},[
+              React.createElement('span',{className:'relative flex h-3 w-3 '+(p.kind==='flagged'?'text-rose-400':'text-emerald-400')},[p.kind==='flagged'?React.createElement('span',{className:'absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-400 opacity-60'}):null,React.createElement('span',{className:'relative inline-flex h-3 w-3 rounded-full '+(p.kind==='flagged'?'bg-rose-400':'bg-emerald-400')})]),
+              React.createElement('span',{className:'absolute left-1/2 top-3 -translate-x-1/2 whitespace-nowrap text-[9px] text-slate-200'},p.label),
+            ])),
+          ]),
+          React.createElement('div',{key:'l',className:'mt-3 grid grid-cols-2 gap-2 text-[11px]'},[React.createElement('div',{className:'flex items-center gap-1.5 text-emerald-300'},[React.createElement(Route,{size:13}),t('recommended')]),React.createElement('div',{className:'flex items-center gap-1.5 text-rose-300'},[React.createElement(TriangleAlert,{size:13}),t('flagged')])]),
+        ]);
+      }
+      function LocalImpactMeter() {
+        const { t } = useLang(); const s = LOCAL_STATS;
+        return React.createElement('div',{className:'glass p-5'},[
+          React.createElement('div',{key:'h',className:'mb-3 flex items-center gap-2'},[React.createElement(HandHeart,{size:16,className:'text-emerald-400'}),React.createElement('h3',{className:'text-base font-bold text-white'},t('communityImpact'))]),
+          React.createElement('div',{key:'c',className:'mb-4'},[React.createElement('p',{className:'text-xs text-slate-400'},t('localContribution')),React.createElement('div',{className:'mt-1 flex items-end gap-1'},[React.createElement('span',{className:'text-3xl font-extrabold text-emerald-400'},'+'+s.contribution+'%'),React.createElement(TrendingUp,{size:20,className:'mb-1 text-emerald-400'})]),React.createElement('div',{className:'mt-2 h-2.5 overflow-hidden rounded-full bg-white/10'},React.createElement('div',{style:{width:s.contribution+'%',transition:'width 1s'},className:'h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-300'}))]),
+          React.createElement('div',{key:'g',className:'grid grid-cols-2 gap-2 text-center'},[React.createElement('div',{className:'rounded-xl bg-white/5 p-3'},[React.createElement(Store,{size:16,className:'mx-auto mb-1 text-emerald-300'}),React.createElement('div',{className:'text-lg font-bold text-white'},s.vendorsSupported),React.createElement('div',{className:'text-[10px] uppercase tracking-wide text-slate-400'},'Local vendors')]),React.createElement('div',{className:'rounded-xl bg-white/5 p-3'},[React.createElement('span',{className:'text-lg font-bold text-emerald-300'},'₹'+s.moneyToCommunity.toLocaleString()),React.createElement('div',{className:'text-[10px] uppercase tracking-wide text-slate-400'},t('toCommunity'))])]),
+        ]);
+      }
+      function CarbonFootprint() {
+        const { t } = useLang(); const c = CARBON; const max = Math.max.apply(null,c.breakdown.map(b=>b.kg));
+        return React.createElement('div',{className:'glass p-5'},[
+          React.createElement('div',{key:'h',className:'mb-3 flex items-center gap-2'},[React.createElement(Leaf,{size:16,className:'text-emerald-400'}),React.createElement('h3',{className:'text-base font-bold text-white'},t('carbon'))]),
+          React.createElement('div',{key:'t',className:'mb-4 grid grid-cols-3 gap-2 text-center'},[React.createElement('div',{className:'rounded-xl bg-white/5 p-3'},[React.createElement('div',{className:'text-lg font-bold text-emerald-300'},c.totalKg+' kg'),React.createElement('div',{className:'text-[10px] uppercase tracking-wide text-slate-400'},t('footprint'))]),React.createElement('div',{className:'rounded-xl bg-emerald-500/10 p-3'},[React.createElement('div',{className:'text-lg font-bold text-emerald-300'},c.localInjectedPct+'%'),React.createElement('div',{className:'text-[10px] uppercase tracking-wide text-slate-400'},t('toCommunity'))]),React.createElement('div',{className:'rounded-xl bg-rose-500/10 p-3'},[React.createElement('div',{className:'text-lg font-bold text-rose-300'},(100-c.localInjectedPct)+'%'),React.createElement('div',{className:'text-[10px] uppercase tracking-wide text-slate-400'},t('toCorporate'))])]),
+          React.createElement('div',{key:'b',className:'space-y-2'},c.breakdown.map((b)=>React.createElement('div',{key:b.mode,className:'flex items-center gap-2'},[React.createElement('span',{className:'w-24 text-[11px] text-slate-300'},b.mode),React.createElement('div',{className:'h-2 flex-1 overflow-hidden rounded-full bg-white/10'},React.createElement('div',{style:{width:(b.kg/max)*100+'%',transition:'width .6s'},className:'h-full rounded-full '+(b.local?'bg-emerald-400':'bg-rose-400/70')})),React.createElement('span',{className:'w-10 text-right text-[11px] text-slate-400'},b.kg+'kg')]))),
+          React.createElement('div',{key:'f',className:'mt-3 flex items-center justify-center gap-4 text-[11px]'},[React.createElement('span',{className:'flex items-center gap-1 text-emerald-300'},[React.createElement(Coins,{size:12}),t('toCommunity')]),React.createElement('span',{className:'flex items-center gap-1 text-rose-300'},[React.createElement(Building2,{size:12}),t('toCorporate')])]),
+        ]);
+      }
+      function LiveConditions() {
+        const { t } = useLang(); const SEV={ok:'text-emerald-300',warn:'text-amber-300',alert:'text-rose-300'};
+        return React.createElement('div',{className:'glass p-5'},[
+          React.createElement('div',{key:'h',className:'mb-3 flex items-center gap-2'},[React.createElement(Radio,{size:16,className:'text-emerald-400'}),React.createElement('h3',{className:'text-base font-bold text-white'},t('liveConditions')),React.createElement('span',{className:'ml-auto flex items-center gap-1 text-[10px] text-emerald-300'},[React.createElement('span',{className:'h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400'}),'LIVE'])]),
+          React.createElement('div',{key:'w',className:'mb-3 flex items-center gap-3 rounded-xl bg-white/5 p-3'},[React.createElement(Icon,{name:WEATHER.icon,size:28,className:'text-emerald-300'}),React.createElement('div',{},[React.createElement('div',{className:'text-xl font-bold text-white'},WEATHER.temp+'°C'),React.createElement('div',{className:'text-[11px] text-slate-400'},WEATHER.condition)]),React.createElement('div',{className:'ml-auto flex flex-col gap-1 text-[11px] text-slate-300'},[React.createElement('span',{className:'flex items-center gap-1'},[React.createElement(Droplets,{size:11}),WEATHER.humidity+'%']),React.createElement('span',{className:'flex items-center gap-1'},[React.createElement(Wind,{size:11}),WEATHER.wind+' km/h'])])]),
+          React.createElement('div',{key:'tt',className:'text-xs font-semibold uppercase tracking-wider text-slate-400'},t('transport')),
+          React.createElement('div',{key:'tk',className:'mt-1 space-y-1'},TICKER.map(item=>React.createElement('div',{key:item.id,className:'flex items-center gap-2 rounded-lg bg-white/5 px-2.5 py-1.5 text-[11px] '+SEV[item.severity]},[React.createElement('span',{className:'h-1.5 w-1.5 shrink-0 rounded-full bg-current'}),item.text]))),
+        ]);
+      }
+      function OfflineMode() {
+        const { t } = useLang();
+        return React.createElement('div',{className:'glass border border-amber-400/30 p-5'},[
+          React.createElement('div',{key:'h',className:'mb-3 flex items-center gap-2'},[React.createElement(WifiOff,{size:18,className:'text-amber-400'}),React.createElement('h3',{className:'text-base font-bold text-white'},t('offlineChecklist')),React.createElement('span',{className:'ml-auto pill bg-amber-500/15 text-amber-300'},t('offlineOn'))]),
+          React.createElement('div',{key:'g',className:'grid gap-4 md:grid-cols-2'},[
+            React.createElement('div',{key:'it'},[React.createElement('div',{className:'mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400'},[React.createElement(FileText,{size:13}),ITINERARY.destination]),React.createElement('div',{className:'space-y-2'},ITINERARY.days.map(d=>React.createElement('div',{key:d.day,className:'rounded-lg bg-white/5 p-2'},[React.createElement('div',{className:'mb-1 text-xs font-bold text-emerald-300'},t('day')+' '+d.day+' — '+d.title),...d.activities.map(a=>React.createElement('div',{key:a.id,className:'flex items-start gap-2 py-0.5 text-[11px] text-slate-300'},[React.createElement(CheckSquare,{size:12,className:'mt-0.5 shrink-0 text-slate-500'}),React.createElement('span',{},[React.createElement('b',{className:'text-white'},a.time),' · ',a.name,a.local.gem?React.createElement('span',{className:'text-emerald-300'},' (Local)'):null])]))])))]),
+            React.createElement('div',{key:'em'},[React.createElement('div',{className:'mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400'},[React.createElement(Phone,{size:13}),t('emergency')]),React.createElement('div',{className:'grid grid-cols-2 gap-2'},EMERGENCY.map(e=>React.createElement('div',{key:e.name,className:'rounded-lg bg-rose-500/10 px-3 py-2'},[React.createElement('div',{className:'text-[11px] text-slate-300'},e.name),React.createElement('div',{className:'text-sm font-bold text-rose-300'},e.number)]))),React.createElement('div',{className:'mt-3 rounded-lg bg-white/5 p-3 text-[11px] leading-relaxed text-slate-300'},[React.createElement('b',{className:'text-amber-300'},t('essentials')+': '),'Carry printed copies, offline maps cached, sufficient water, and verify opening hours locally.'])])]),
+        ]);
+      }
+      function Header({ offline, onToggleOffline }) {
+        const { t, lang, setLang } = useLang(); const [open,setOpen]=useState(false); const ref=useRef(null);
+        useEffect(()=>{ const h=(e)=>ref.current&&!ref.current.contains(e.target)&&setOpen(false); document.addEventListener('mousedown',h); return ()=>document.removeEventListener('mousedown',h); },[]);
+        const current=LANGS.find(l=>l.code===lang);
+        const items=LANGS.map(l=>React.createElement('button',{key:l.code,onClick:()=>{setLang(l.code);setOpen(false);},className:'flex w-full items-center gap-2 px-4 py-2.5 text-sm hover:bg-emerald-500/10 '+(l.code===lang?'text-emerald-300':'text-slate-200')},[React.createElement('span',{},l.flag),l.label]));
+        return React.createElement('header',{className:'sticky top-0 z-40 border-b border-white/5 bg-slate-950/70 backdrop-blur-xl'},
+          React.createElement('div',{className:'mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6'},[
+            React.createElement('div',{key:'b',className:'flex items-center gap-3'},[React.createElement('div',{key:'logo',className:'relative grid h-11 w-11 place-items-center rounded-2xl bg-emerald-500/15 shadow-glow'},[React.createElement(Leaf,{size:22,className:'text-emerald-400'}),React.createElement('span',{className:'absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-emerald-500'},[React.createElement(ShieldCheck,{size:12,className:'text-emerald-950'})])]),React.createElement('div',{},[React.createElement('h1',{className:'flex items-center gap-1.5 text-lg font-extrabold tracking-tight text-white'},[t('brand'),React.createElement(Sparkles,{size:14,className:'text-emerald-400'})]),React.createElement('p',{className:'text-[11px] font-medium uppercase tracking-widest text-emerald-400/80'},t('tagline'))])]),
+            React.createElement('div',{key:'r',className:'flex flex-wrap items-center gap-2'},[
+              React.createElement('span',{key:'st',className:'pill bg-emerald-500/10 text-emerald-300 border border-emerald-400/20'},[React.createElement('span',{className:'relative flex h-2 w-2'},[React.createElement('span',{className:'absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75'}),React.createElement('span',{className:'relative inline-flex h-2 w-2 rounded-full bg-emerald-400'})]),t('engineOnline')+' · '+t('accuracy')]),
+              React.createElement('button',{key:'of',onClick:onToggleOffline,className:'pill border '+(offline?'bg-amber-500/15 text-amber-300 border-amber-400/30':'bg-white/5 text-slate-200 border-white/10 hover:bg-white/10')},[offline?React.createElement(WifiOff,{size:14}):React.createElement(Wifi,{size:14}),React.createElement('span',{className:'hidden sm:inline'},offline?t('offlineOn'):t('offlineOff'))]),
+              React.createElement('div',{key:'lg',className:'relative',ref:ref},[
+                React.createElement('button',{onClick:()=>setOpen(o=>!o),className:'flex items-center gap-2 rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-sm font-medium hover:bg-white/10 transition'},[React.createElement(Globe,{size:16,className:'text-emerald-400'}),React.createElement('span',{},current.flag),React.createElement('span',{className:'hidden sm:inline'},current.label),React.createElement(ChevronDown,{size:14,className:open?'rotate-180':''})]),
+                open?React.createElement('div',{className:'absolute right-0 z-50 mt-2 w-44 overflow-hidden rounded-xl border border-white/10 bg-slate-900/95 backdrop-blur-xl shadow-glass'},items):null,
+              ]),
+            ]),
+          ]));
+      }
+      function Counter({ label, value, onChange }) {
+        return React.createElement('div',{className:'flex items-center justify-between rounded-xl bg-white/5 border border-white/10 px-3 py-2'},[React.createElement('span',{className:'text-sm text-slate-300'},label),React.createElement('div',{className:'flex items-center gap-2'},[React.createElement('button',{onClick:()=>onChange(Math.max(0,value-1)),className:'grid h-7 w-7 place-items-center rounded-lg bg-white/10 hover:bg-white/20'},[React.createElement(Minus,{size:14})]),React.createElement('span',{className:'w-5 text-center font-bold text-white'},value),React.createElement('button',{onClick:()=>onChange(value+1),className:'grid h-7 w-7 place-items-center rounded-lg bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30'},[React.createElement(Plus,{size:14})])])]);
+      }
+      function ItineraryForm({ data, setData, onSubmit, loading }) {
+        const { t } = useLang(); const [show,setShow]=useState(false);
+        const toggle=(key,id)=>setData(d=>({...d,[key]:d[key].includes(id)?d[key].filter(x=>x!==id):[...d[key],id]}));
+        const filtered=DEST_SUG.filter(s=>s.toLowerCase().includes((data.destination||'').toLowerCase()));
+        return React.createElement('div',{className:'glass p-5 sm:p-6'},[
+          React.createElement('div',{key:'h',className:'mb-4 flex items-center gap-2'},[React.createElement(Sparkles,{size:18,className:'text-emerald-400'}),React.createElement('h2',{className:'text-base font-bold text-white'},t('buildTitle'))]),
+          React.createElement('div',{key:'dest',className:'relative mb-4'},[React.createElement('label',{className:'mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-400'},t('destination')),React.createElement('div',{className:'flex items-center gap-2 rounded-xl bg-white/5 border border-white/10 px-3'},[React.createElement(MapPin,{size:16,className:'text-emerald-400'}),React.createElement('input',{value:data.destination,onChange:(e)=>{setData(d=>({...d,destination:e.target.value}));setShow(true);},onFocus:()=>setShow(true),onBlur:()=>setTimeout(()=>setShow(false),150),placeholder:t('destinationPlaceholder'),className:'w-full bg-transparent py-2.5 text-sm text-white placeholder:text-slate-500 outline-none'})]),show&&filtered.length>0?React.createElement('div',{className:'absolute z-30 mt-1 w-full overflow-hidden rounded-xl border border-white/10 bg-slate-900/95 backdrop-blur-xl'},filtered.map(s=>React.createElement('button',{key:s,onMouseDown:()=>{setData(d=>({...d,destination:s}));setShow(false);},className:'flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-slate-200 hover:bg-emerald-500/10'},[React.createElement(MapPin,{size:13,className:'text-emerald-400'}),s]))):null]),
+          React.createElement('div',{key:'dt',className:'mb-4'},[React.createElement('label',{className:'mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-400'},t('dates')),React.createElement('input',{type:'date',value:data.dates,onChange:(e)=>setData(d=>({...d,dates:e.target.value})),className:'w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2.5 text-sm text-white outline-none [color-scheme:dark]'})]),
+          React.createElement('div',{key:'tr',className:'mb-4 grid grid-cols-1 gap-2 sm:grid-cols-3'},[React.createElement(Counter,{key:'a',label:t('adults'),value:data.travelers.adults,onChange:(v)=>setData(d=>({...d,travelers:{...d.travelers,adults:v}}))}),React.createElement(Counter,{key:'c',label:t('children'),value:data.travelers.children,onChange:(v)=>setData(d=>({...d,travelers:{...d.travelers,children:v}}))}),React.createElement(Counter,{key:'s',label:t('seniors'),value:data.travelers.seniors,onChange:(v)=>setData(d=>({...d,travelers:{...d.travelers,seniors:v}}))})]),
+          React.createElement('div',{key:'bd',className:'mb-4'},[React.createElement('label',{className:'mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-400'},t('budget')),React.createElement('div',{className:'flex gap-2'},BUDGETS.map(b=>React.createElement('button',{key:b.id,onClick:()=>setData(d=>({...d,budget:b.id})),className:'flex-1 rounded-xl border px-3 py-2 text-center transition '+(data.budget===b.id?'border-emerald-400/50 bg-emerald-500/15 text-emerald-300':'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10')},[React.createElement('div',{className:'text-lg font-extrabold'},b.label),React.createElement('div',{className:'text-[10px] uppercase tracking-wide opacity-70'},b.hint)])))]),
+          React.createElement('div',{key:'pc',className:'mb-4'},[React.createElement('label',{className:'mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-400'},t('pacing')),React.createElement('div',{className:'flex gap-2'},['relaxed','balanced','packed'].map(p=>React.createElement('button',{key:p,onClick:()=>setData(d=>({...d,pacing:p})),className:'flex-1 rounded-xl border px-3 py-2 text-sm font-medium transition '+(data.pacing===p?'border-emerald-400/50 bg-emerald-500/15 text-emerald-300':'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10')},t(p))))]),
+          React.createElement('div',{key:'in',className:'mb-4'},[React.createElement('label',{className:'mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-400'},t('interests')),React.createElement('div',{className:'flex flex-wrap gap-2'},INTERESTS.map(i=>{ const act=data.interests.includes(i.id); return React.createElement('button',{key:i.id,onClick:()=>toggle('interests',i.id),className:'pill border transition '+(act?'border-emerald-400/50 bg-emerald-500/20 text-emerald-300':'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10')},[React.createElement(Icon,{name:i.icon,size:13}),i.label]); }))]),
+          React.createElement('div',{key:'ac',className:'mb-4'},[React.createElement('label',{className:'mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400'},[React.createElement(Accessibility,{size:13,className:'text-emerald-400'}),t('accessibility')]),React.createElement('div',{className:'grid grid-cols-2 gap-2'},ACCESSIBILITY.map(a=>{ const act=data.accessibility.includes(a.id); return React.createElement('label',{key:a.id,className:'flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-sm transition '+(act?'border-emerald-400/40 bg-emerald-500/10 text-emerald-300':'border-white/10 bg-white/5 text-slate-300')},[React.createElement('input',{type:'checkbox',checked:act,onChange:()=>toggle('accessibility',a.id),className:'h-4 w-4 accent-emerald-500'}),a.label]); }))]),
+          React.createElement('div',{key:'rq',className:'mb-4'},[React.createElement('label',{className:'mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-400'},t('specialRequests')),React.createElement('textarea',{value:data.requests,onChange:(e)=>setData(d=>({...d,requests:e.target.value})),placeholder:t('requestsPlaceholder'),rows:2,className:'w-full resize-none rounded-xl bg-white/5 border border-white/10 px-3 py-2.5 text-sm text-white placeholder:text-slate-500 outline-none focus:border-emerald-400/40'})]),
+          React.createElement('label',{key:'lo',className:'mb-5 flex cursor-pointer items-center justify-between rounded-xl border border-white/10 bg-white/5 px-3 py-2.5'},[React.createElement('div',{},[React.createElement('div',{className:'text-sm font-medium text-slate-200'},t('localOnly')),React.createElement('div',{className:'text-[11px] text-slate-400'},t('localOnly'))]),React.createElement('span',{onClick:()=>setData(d=>({...d,localOnly:!d.localOnly})),className:'relative h-6 w-11 rounded-full transition '+(data.localOnly?'bg-emerald-500':'bg-slate-600')},[React.createElement('span',{className:'absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all '+(data.localOnly?'left-5':'left-0.5')})])]),
+          React.createElement('button',{key:'go',onClick:onSubmit,disabled:loading,className:'btn-primary w-full'},[loading?React.createElement(Loader2,{size:16,className:'animate-spin'}):React.createElement(Wand2,{size:16}),loading?t('generating'):t('generate')]),
+        ]);
+      }
+      function App() {
+        const { t } = useLang();
+        const [form,setForm]=useState({destination:'Bhubaneswar, Odisha',dates:'2026-08-28',travelers:{adults:2,children:1,seniors:1},budget:'mid',pacing:'balanced',interests:['heritage','nature','food'],accessibility:['wheelchair'],requests:'',localOnly:false});
+        const [loading,setLoading]=useState(true); const [generated,setGenerated]=useState(false); const [offline,setOffline]=useState(false);
+        useEffect(()=>{ const id=setTimeout(()=>{setLoading(false);setGenerated(true);},1100); return ()=>clearTimeout(id); },[]);
+        const handleGenerate=()=>{ setLoading(true); setGenerated(false); setTimeout(()=>{setLoading(false);setGenerated(true);},1200); };
+        const it=ITINERARY;
+        return React.createElement('div',{className:'min-h-screen'},[
+          React.createElement(Header,{key:'h',offline,onToggleOffline:()=>setOffline(o=>!o)}),
+          React.createElement('main',{key:'m',className:'mx-auto max-w-7xl px-4 py-6 sm:px-6'},[
+            offline?React.createElement('div',{key:'of',className:'mb-6'},React.createElement(OfflineMode,{})):null,
+            React.createElement('div',{key:'g',className:'grid grid-cols-1 gap-5 lg:grid-cols-12'},[
+              React.createElement('div',{key:'l',className:'flex flex-col gap-5 lg:col-span-4'},[React.createElement(ItineraryForm,{key:'f',data:form,setData:setForm,onSubmit:handleGenerate,loading}),React.createElement(LocalImpactMeter,{}),React.createElement(CarbonFootprint,{})]),
+              React.createElement('div',{key:'r',className:'flex flex-col gap-5 lg:col-span-8'},[
+                React.createElement('div',{key:'ih',className:'glass flex flex-wrap items-center gap-3 p-5'},[React.createElement('div',{key:'ic',className:'grid h-10 w-10 place-items-center rounded-xl bg-emerald-500/15 text-emerald-300'},[React.createElement(CalendarDays,{size:18})]),React.createElement('div',{},[React.createElement('h2',{className:'text-lg font-extrabold text-white'},t('itineraryTitle')),React.createElement('p',{className:'text-xs text-slate-400'},it.destination)]),React.createElement('span',{className:'ml-auto pill bg-amber-500/15 text-amber-300'},[React.createElement(ShieldCheck,{size:13}),t('unverified')+' · static demo data'])
+]),
+                loading?React.createElement('div',{key:'ld',className:'space-y-3'},[0,1,2].map(i=>React.createElement('div',{key:i,className:'glass-soft h-32 animate-pulse p-4'}))):null,
+                (!loading&&generated)?React.createElement('div',{key:'it',className:'space-y-5'},it.days.map((day,di)=>React.createElement('section',{key:day.day,className:'space-y-3'},[React.createElement('div',{key:'dh',className:'flex items-center gap-2'},[React.createElement('span',{className:'grid h-7 w-7 place-items-center rounded-lg bg-emerald-500/20 text-xs font-bold text-emerald-300'},day.day),React.createElement('h3',{className:'text-sm font-bold uppercase tracking-wider text-slate-300'},day.title),React.createElement('span',{className:'h-px flex-1 bg-white/5'})]),React.createElement('div',{className:'grid grid-cols-1 gap-4 md:grid-cols-2'},day.activities.map(a=>React.createElement(ItineraryCard,{key:a.id,activity:a,localOnly:form.localOnly})))])])):null,
+                React.createElement('div',{key:'lr',className:'grid grid-cols-1 gap-5 xl:grid-cols-2'},[React.createElement(LiveConditions,{}),React.createElement(MapOverview,{})]),
+                React.createElement('div',{key:'dc',className:'glass-soft flex items-start gap-3 p-4 text-[11px] leading-relaxed text-slate-400'},[React.createElement(Sparkles,{size:16,className:'mt-0.5 shrink-0 text-emerald-400'}),'This standalone demo uses static sample data and is not connected to live sources. Confirm opening hours, safety advice and cultural claims locally before you travel.'
+]),
+              ]),
+            ]),
+            React.createElement('footer',{key:'ft',className:'mt-8 pb-6 text-center text-[11px] text-slate-600'},'EcoRoute AI · Source-aware Destination Copilot · Static demo · SOA Ideathon'
+),
+          ]),
+        ]);
+      }
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(React.createElement(LanguageProvider,null,React.createElement(App)));
+      const boot = document.getElementById('boot'); if (boot) boot.remove();
+
+    </script>
+  </body>
+</html>

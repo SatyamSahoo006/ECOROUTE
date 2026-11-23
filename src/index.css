@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(16, 185, 129, 0.10), transparent 60%),
+    radial-gradient(1000px 500px at 100% 0%, rgba(6, 78, 59, 0.10), transparent 55%),
+    #f8fafb;
+  color: #0f172a;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer components {
+  .glass {
+    @apply bg-white border border-slate-200 rounded-2xl;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 10px 30px rgba(15, 23, 42, 0.05);
+  }
+  .glass-soft {
+    @apply bg-white border border-slate-100 rounded-2xl;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  }
+  .pill {
+    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold;
+  }
+  .btn-primary {
+    @apply relative inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-5 py-3 text-sm font-bold text-emerald-950 transition-all hover:bg-emerald-400 hover:shadow-glow active:scale-[0.98] disabled:opacity-50;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(16, 185, 129, 0.35);
+  border-radius: 999px;
+}
+
+/* ---- Light theme remap of legacy dark utilities ---- */
+.text-white { color: #0f172a !important; }
+.text-slate-200 { color: #334155 !important; }
+.text-slate-300 { color: #475569 !important; }
+.text-slate-400 { color: #64748b !important; }
+.text-slate-500 { color: #64748b !important; }
+.text-slate-600 { color: #475569 !important; }
+.text-emerald-300 { color: #047857 !important; }
+.text-emerald-400 { color: #059669 !important; }
+.text-emerald-400\/80 { color: #059669cc !important; }
+.text-rose-300 { color: #e11d48 !important; }
+.text-amber-300 { color: #b45309 !important; }
+.text-purple-300 { color: #7e22ce !important; }
+.text-orange-300 { color: #c2410c !important; }
+.text-teal-300 { color: #0f766e !important; }
+
+.border-white\/10 { border-color: rgba(15, 23, 42, 0.10) !important; }
+.border-white\/5 { border-color: rgba(15, 23, 42, 0.06) !important; }
+.bg-white\/5 { background-color: #f1f5f9 !important; }
+.bg-white\/10 { background-color: #e2e8f0 !important; }
+.bg-white\/\[0\.03\] { background-color: #f8fafb !important; }
+.bg-slate-900\/95 { background-color: #ffffff !important; border-color: #e2e8f0 !important; color: #0f172a !important; }
+.bg-slate-950\/70 { background-color: rgba(255, 255, 255, 0.82) !important; }
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
